@@ -1,4 +1,4 @@
-from src.context_free_wrappers import ContextFreeEncoder
+from src.set_encoders import ContextFreeEncoder
 
 import torch
 import torch.nn.functional as F

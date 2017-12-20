@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 from torch.autograd import Variable
-from context_free_wrappers import ContextFreeEncoder
 
 class ContextBasedLinear(nn.Module):
     def __init__(self, nonlinearity=None):
