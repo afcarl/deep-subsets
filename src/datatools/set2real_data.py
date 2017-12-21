@@ -33,8 +33,8 @@ class MNISTSets(torch.utils.data.Dataset):
                                          train=train
                                         )
         self.target = target
-        
-    def __getitem__(self, index):
+    
+    def _get(self, index):
         idx = self.data_idx[index]
         data = self.mnist_data.train_data[idx].unsqueeze(1).float()/255
         labels = self.mnist_data.train_labels[idx]
@@ -47,6 +47,10 @@ class MNISTSets(torch.utils.data.Dataset):
             target = torch.max(labels.float())
         elif self.target == '2max':
             target = torch.sort(labels.float())[0][-2]
+        return data, target, labels
+
+    def __getitem__(self, index):
+        data, target, _ = self._get(index)
         return data, target
     
     def __len__(self):
