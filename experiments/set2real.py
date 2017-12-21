@@ -16,7 +16,7 @@ CUDA = False
 create_folder = lambda f: [os.makedirs(os.path.join('./', f)) if not os.path.exists(os.path.join('./', f)) else False]
 
 def plot_preds(x, y, net):
-    image1, image2, image3, image4 = x
+    image1, image2, image3, image4 = x.cpu()
     f = plt.figure()
     ax = f.add_subplot(221)
     ax.imshow(image1.numpy().reshape(28, 28))
@@ -26,7 +26,7 @@ def plot_preds(x, y, net):
     ax.imshow(image3.numpy().reshape(28, 28))
     ax = f.add_subplot(224)
     ax.imshow(image4.numpy().reshape(28, 28))
-    pred = np.around(net(Variable(x.unsqueeze(0), volatile=True)).data[0][0], decimals=2)
+    pred = np.around(net(Variable(x.unsqueeze(0), volatile=True)).data.cpu()[0][0], decimals=2)
     f.suptitle('predicted:' + str(pred) +' true:'+str(y))
     return f
 
@@ -50,35 +50,35 @@ def main(args):
         net.cuda()
         CUDA = True
 
-    for dataset in datasets: # run over all datasets
-        for n in range(args.epochs): # run for epochs
-            for i, (x, y) in enumerate(dataset): # batches in each epoch
-                # zero the gradients
-                optimizer.zero_grad()
-                if CUDA:
-                    x = x.cuda()
-                    y = y.cuda()
-                # prepare the data
-                x, y = Variable(x), Variable(y)
+    for n in range(args.epochs): # run for epochs
+        # is this curriculum training?
+        dataset = random.sample(datasets[:n+1], 1)[0]
+        for i, (x, y) in enumerate(dataset): # batches in each epoch
+            # zero the gradients
+            optimizer.zero_grad()
+            if CUDA:
+                x = x.cuda()
+                y = y.cuda()
+            # prepare the data
+            x, y = Variable(x), Variable(y)
 
-                # run it through the network
-                y_hat = net(x)
+            # run it through the network
+            y_hat = net(x)
 
-                # calculate the loss
-                loss = criterion(y_hat.float(), y.float())
+            # calculate the loss
+            loss = criterion(y_hat.float(), y.float())
 
-                # update parameters
-                loss.backward()
-                optimizer.step()
+            # update parameters
+            loss.backward()
+            optimizer.step()
 
-            if n % 10 == 0:
-                print('epoch: {}, loss: {}'.format(n, loss.cpu().data[0]))
+        if n % 10 == 0:
+            print('epoch: {}, loss: {}'.format(n, loss.cpu().data[0]))
 
     # save some of the predictions:
     x, y = next(iter(datasets[0]))
     if CUDA:
         x = x.cuda()
-        y = y.cuda()
     plot_preds(x[0], y[0], net).savefig(os.path.join(folder_path, 'example1.pdf'))
     plot_preds(x[1], y[1], net).savefig(os.path.join(folder_path, 'example2.pdf'))
     plot_preds(x[2], y[2], net).savefig(os.path.join(folder_path, 'example3.pdf'))
