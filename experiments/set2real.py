@@ -56,8 +56,8 @@ def main(args):
                 # zero the gradients
                 optimizer.zero_grad()
                 if CUDA:
-                    x.cuda()
-                    y.cuda()
+                    x = x.cuda()
+                    y = y.cuda()
                 # prepare the data
                 x, y = Variable(x), Variable(y)
 
@@ -96,8 +96,8 @@ def main(args):
         for i, (x, y) in enumerate(dataset):
             # prepare the data
             if CUDA:
-                x.cuda()
-                y.cuda()
+                x = x.cuda()
+                y = y.cuda()
             x, y = Variable(x, volatile=True), Variable(y, volatile=True)
 
             # run it through the network
@@ -106,7 +106,7 @@ def main(args):
             # calculate the loss
             loss = criterion(y_hat.float(), y.float())
             if CUDA:
-                loss.cpu()
+                loss = loss.cpu()
             set_sizes.append(set_size)
             mse.append(loss.data[0])
 
