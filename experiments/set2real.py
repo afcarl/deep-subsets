@@ -11,6 +11,8 @@ import numpy as np
 from src.networks.mnist import Set2RealNet
 from src.datatools import MNISTSets
 
+CUDA = False
+
 create_folder = lambda f: [os.makedirs(os.path.join('./', f)) if not os.path.exists(os.path.join('./', f)) else False]
 
 def plot_preds(x, y, net):
@@ -46,13 +48,16 @@ def main(args):
 
     if torch.cuda.is_available() and args.gpu != '':
         net.cuda()
+        CUDA = True
 
     for dataset in datasets: # run over all datasets
         for n in range(args.epochs): # run for epochs
             for i, (x, y) in enumerate(dataset): # batches in each epoch
                 # zero the gradients
                 optimizer.zero_grad()
-
+                if CUDA:
+                    x.cuda()
+                    y.cuda()
                 # prepare the data
                 x, y = Variable(x), Variable(y)
 
@@ -67,7 +72,7 @@ def main(args):
                 optimizer.step()
 
             if n % 10 == 0:
-                print('epoch: {}, loss: {}'.format(n, loss.data[0]))
+                print('epoch: {}, loss: {}'.format(n, loss.cpu().data[0]))
 
     # save some of the predictions:
     x, y = next(iter(datasets[0]))
@@ -90,6 +95,9 @@ def main(args):
     for set_size, dataset in datasets:
         for i, (x, y) in enumerate(dataset):
             # prepare the data
+            if CUDA:
+                x.cuda()
+                y.cuda()
             x, y = Variable(x, volatile=True), Variable(y, volatile=True)
 
             # run it through the network
@@ -97,6 +105,8 @@ def main(args):
 
             # calculate the loss
             loss = criterion(y_hat.float(), y.float())
+            if CUDA:
+                loss.cpu()
             set_sizes.append(set_size)
             mse.append(loss.data[0])
 
