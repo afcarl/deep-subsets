@@ -37,8 +37,13 @@ class ContextFreeEncoder(nn.Module):
         is represented as an element in the batch
         """
         if self.element_dims == '1d':
-            batch_size, set_size, channels, L = input.size()
-            reshaped = input.view(batch_size * set_size, channels, L)
+            sizes = input.size()
+            if len(sizes) == 4:
+                batch_size, set_size, channels, L = sizes
+                reshaped = input.view(batch_size * set_size, channels, L)
+            elif len(sizes) == 3:
+                batch_size, set_size, L = sizes
+                reshaped = input.view(batch_size * set_size, L)
             return reshaped, (batch_size, set_size)
         elif self.element_dims == '2d':
             batch_size, set_size, channels, H, W = input.size()
