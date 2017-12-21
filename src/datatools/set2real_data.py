@@ -9,6 +9,15 @@ class MNISTSets(torch.utils.data.Dataset):
                  set_sizes=list(range(4,11)),
                  target='avg',
                  data_location='../../data/'):
+        """
+        Creates a MNIST dataset where the inputs are sets of MNIST digits
+        and the targets are a population level statistic of their labels.
+        :param data_size: number of sets
+        :param set_sizes: a list representing the number of possible elements per set 
+        :param target: the population level statistic you want to predict
+                        available: (avg, mean, sum, max, 2max)
+        :param data_location: the location where the data is stored.
+        """
         assert target in ['avg', 'mean', 'sum', 'max', '2max']
         datas = []
         data_per_set_size = math.ceil(data_size / len(set_sizes))
