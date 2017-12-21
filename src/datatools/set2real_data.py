@@ -15,7 +15,7 @@ class MNISTSets(torch.utils.data.Dataset):
         for set_size in set_sizes:
             datas.extend(np.random.randint(0, 60000, size=(data_per_set_size, set_size)).tolist())
         
-        self.data_idx = datas
+        self.data_idx = list(map(lambda idx: torch.from_numpy(np.array(idx)), datas))
         self.mnist_data = datasets.MNIST(data_location,
                                          transform=transforms.Compose(
                                             [transforms.ToTensor(),
@@ -24,7 +24,7 @@ class MNISTSets(torch.utils.data.Dataset):
         self.target = target
         
     def __getitem__(self, index):
-        idx = torch.from_numpy(np.array(self.data_idx[index]))
+        idx = self.data_idx[index]
         data = self.mnist_data.train_data[idx].unsqueeze(1).float()/255
         labels = self.mnist_data.train_labels[idx]
 #         print(labels)
