@@ -9,7 +9,7 @@ from torch.autograd import Variable
 import torch
 import random
 import numpy as np
-from src.networks.mnist import Set2RealNet
+from src.networks.mnist import Set2RealNet, Seq2RealNet
 from src.datatools import MNISTSets
 
 create_folder = lambda f: [os.makedirs(os.path.join('./', f)) if not os.path.exists(os.path.join('./', f)) else False]
@@ -31,7 +31,7 @@ def plot_preds(x, y, net):
 
 def main(args):
     CUDA = False
-    folder_name = args.name+'_'+args.task
+    folder_name = args.name+'_'+args.task+'_'+args.architecture
     folder_path = os.path.join('./', folder_name)
     create_folder(folder_name)
     # create some different datasets for training:
@@ -42,7 +42,13 @@ def main(args):
         for i in range(4,10)
         ]
 
-    net = Set2RealNet()
+    if args.architecture == 'set':
+        net = Set2RealNet()
+    elif args.architecture == 'seq':
+        net = Seq2RealNet()
+    else:
+        raise ValueError('Unknown architecture. Must be set or seq!')
+        
     optimizer = torch.optim.Adam(net.parameters())
     criterion = torch.nn.MSELoss()
 
@@ -132,6 +138,11 @@ if __name__ == '__main__':
                         '--epochs',
                         help='Number of epochs',
                         type=int,
+                        required=True)
+    parser.add_argument('-a',
+                        '--architecture',
+                        help='Architecture to use (set, seq)',
+                        type=str,
                         required=True)
     parser.add_argument('-t',
                         '--task',
