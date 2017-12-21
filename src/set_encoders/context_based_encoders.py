@@ -24,6 +24,9 @@ class ContextBasedLinear(nn.Module):
         elements_per_set = x.size(1)
         ONE = Variable(torch.ones(elements_per_set), requires_grad=False)
         I = Variable(torch.eye(elements_per_set), requires_grad=False)
+        if torch.cuda.is_available():
+            ONE = ONE.cuda()
+            I = I.cuda()
         weights = self.mu * I
         weights += self.gamma * torch.ger(ONE, ONE)
         x = torch.matmul(weights, x)
