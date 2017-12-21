@@ -22,7 +22,8 @@ class Set2RealNet(nn.Module):
         self.cfe = ContextFreeEncoder(cfe, '2d')
         self.flatten = FlattenElements()
         if encode_set:
-            self.cbl = ContextBasedLinear(nonlinearity=nn.ReLU)
+            self.cbl1 = ContextBasedLinear(nonlinearity=nn.ReLU)
+            self.cbl2 = ContextBasedLinear(nonlinearity=nn.ReLU)
             self.encode_set = True
         else:
             self.encode_set = False
@@ -37,7 +38,8 @@ class Set2RealNet(nn.Module):
         x = self.flatten(x) # flatten individual images
 
         if self.encode_set:
-            x = self.cbl(x) # encode the set
+            x = self.cbl1(x) # encode the set
+            x = self.cbl2(x) # encode the set
 
         x = self.lss(x) # collapse the set
 
@@ -86,7 +88,7 @@ class Set2SubsetNet(nn.Module):
     Used when the input is to be interpreted as a set of MNIST digits
     and the output is a subset of those elements as indicated by probabilities
     """    
-    def __init__(self, encode_set=False, logprobs=True):
+    def __init__(self, logprobs=True):
         super().__init__()
 
         # per element encoder is a conv neural network
@@ -99,21 +101,19 @@ class Set2SubsetNet(nn.Module):
         
         self.cfe = ContextFreeEncoder(cfe, '2d')
         self.flatten = FlattenElements()
+        self.cbe = ContextBasedLinear(nonlinearity=nn.ReLU)
+        self.cbe2 = ContextBasedLinear(nonlinearity=nn.ReLU)
+        self.cbe3 = ContextBasedLinear(nonlinearity=None)
+        self.final = ContextFreeEncoder(nn.Linear(4, 1), '1d')
+        self.logprobs = logprobs
 
-        self.encode_set = encode_set
-        if encode_set:
-            self.cbe = ContextBasedLinear(nonlinearity=nn.ReLU)
-            self.cbe2 = ContextBasedLinear(nonlinearity=nn.ReLU)
-
-        self.decoder = SimpleSubset(4,
-                                    hidden_dim=1,
-                                    logprobs=logprobs)
-        
     def forward(self, x):
         x = self.cfe(x)
         x = self.flatten(x)
-        if self.encode_set:
-            x = self.cbe(x)
-            x = self.cbe2(x)
-        x = self.decoder(x)
+        x = self.cbe(x)
+        x = self.cbe2(x)
+        x = self.cbe3(x)
+        x = self.final(x)
+        if not self.logprobs:
+            x = F.sigmoid(x)
         return x

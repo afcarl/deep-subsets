@@ -10,7 +10,10 @@ class ContextBasedLinear(nn.Module):
         super().__init__()
         self.mu = Parameter(torch.Tensor(1))
         self.gamma = Parameter(torch.Tensor(1))
-        self.nonlinearity = nonlinearity()
+        if nonlinearity:
+            self.nonlinearity = nonlinearity()
+        else:
+            self.nonlinearity = False
         self.reset_weights()
 
     def reset_weights(self):

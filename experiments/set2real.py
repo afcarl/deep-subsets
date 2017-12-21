@@ -43,7 +43,7 @@ def main(args):
         ]
 
     if args.architecture == 'set':
-        net = Set2RealNet()
+        net = Set2RealNet(encode_set=True)
     elif args.architecture == 'seq':
         net = Seq2RealNet()
     else:
