@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath('..'))
 from torch.autograd import Variable
 import torch
+import random
 import numpy as np
 from src.networks.mnist import Set2RealNet
 from src.datatools import MNISTSets
-
-CUDA = False
 
 create_folder = lambda f: [os.makedirs(os.path.join('./', f)) if not os.path.exists(os.path.join('./', f)) else False]
 
@@ -31,6 +30,7 @@ def plot_preds(x, y, net):
     return f
 
 def main(args):
+    CUDA = False
     folder_name = args.name+'_'+args.task
     folder_path = os.path.join('./', folder_name)
     create_folder(folder_name)
