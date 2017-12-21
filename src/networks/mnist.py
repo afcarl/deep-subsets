@@ -1,9 +1,13 @@
 import torch.nn as nn
 from src.set_encoders import ContextBasedLinear, ContextFreeEncoder
-from src.set_decoders import LinearSumSet
+from src.set_decoders import LinearSumSet, SimpleSubset
 from src.util_layers import FlattenElements
 
 class Set2RealNet(nn.Module):
+    """
+    Used when the input is to be interpreted as a Set of MNIST digits
+    and the output is a real number calculated from the set
+    """
     def __init__(self, encode_set=False):
         super().__init__()
 
@@ -44,6 +48,10 @@ class Set2RealNet(nn.Module):
         return x
 
 class Seq2RealNet(nn.Module):
+    """
+    Used when the input is to be interpreted as a _sequence_ of MNIST digits
+    and the output is a real number calculated from the sequence
+    """
     def __init__(self):
         super().__init__()
         
@@ -73,3 +81,39 @@ class Seq2RealNet(nn.Module):
 
         return x
         
+class Set2SubsetNet(nn.Module):
+    """
+    Used when the input is to be interpreted as a set of MNIST digits
+    and the output is a subset of those elements as indicated by probabilities
+    """    
+    def __init__(self, encode_set=False, logprobs=True):
+        super().__init__()
+
+        # per element encoder is a conv neural network
+        cfe = nn.Sequential(nn.Conv2d(1, 1, (3, 3)),
+                            nn.MaxPool2d(4),
+                            nn.ReLU(),
+                            nn.Conv2d(1, 1, (3, 3)),
+                            nn.MaxPool2d(2),
+                            nn.ReLU())
+        
+        self.cfe = ContextFreeEncoder(cfe, '2d')
+        self.flatten = FlattenElements()
+
+        self.encode_set = encode_set
+        if encode_set:
+            self.cbe = ContextBasedLinear(nonlinearity=nn.ReLU)
+            self.cbe2 = ContextBasedLinear(nonlinearity=nn.ReLU)
+
+        self.decoder = SimpleSubset(4,
+                                    hidden_dim=1,
+                                    logprobs=logprobs)
+        
+    def forward(self, x):
+        x = self.cfe(x)
+        x = self.flatten(x)
+        if self.encode_set:
+            x = self.cbe(x)
+            x = self.cbe2(x)
+        x = self.decoder(x)
+        return x
