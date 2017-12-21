@@ -8,6 +8,7 @@ class MNISTSets(torch.utils.data.Dataset):
                  data_size,
                  set_sizes=list(range(4,11)),
                  target='avg',
+                 train=True,
                  data_location='../../data/'):
         """
         Creates a MNIST dataset where the inputs are sets of MNIST digits
@@ -28,7 +29,8 @@ class MNISTSets(torch.utils.data.Dataset):
         self.mnist_data = datasets.MNIST(data_location,
                                          transform=transforms.Compose(
                                             [transforms.ToTensor(),
-                                             transforms.Lambda(lambda x: x/255.0)])
+                                             transforms.Lambda(lambda x: x/255.0)]),
+                                         train=train
                                         )
         self.target = target
         
