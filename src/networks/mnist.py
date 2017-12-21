@@ -42,4 +42,34 @@ class Set2RealNet(nn.Module):
         x = self.relu(x)
         x = self.linearout(x)
         return x
+
+class Seq2RealNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        # per element encoder is a conv neural network
+        cfe = nn.Sequential(nn.Conv2d(1, 1, (3, 3)),
+                            nn.MaxPool2d(4),
+                            nn.ReLU(),
+                            nn.Conv2d(1, 1, (3, 3)),
+                            nn.MaxPool2d(2),
+                            nn.ReLU())
+
+        self.cfe = ContextFreeEncoder(cfe, '2d')
+        self.flatten = FlattenElements()
+
+        self.lstm = nn.LSTM(4, 4, 1)
+        self.relu = nn.ReLU()
+        self.linearout = nn.Linear(4, 1)
+
+    def forward(self, x):
+        x = self.cfe(x)
+        x = self.flatten(x)
+        x = x.permute(1, 0, 2)
+        hT, _ = self.lstm(x)
+        x = hT[-1]
+        x = self.relu(x)
+        x = self.linearout(x)
+
+        return x
         
