@@ -9,7 +9,7 @@ class MNISTSets(torch.utils.data.Dataset):
                  set_sizes=list(range(4,11)),
                  target='avg',
                  train=True,
-                 data_location='../../data/'):
+                 data_location='../data/'):
         """
         Creates a MNIST dataset where the inputs are sets of MNIST digits
         and the targets are a population level statistic of their labels.
