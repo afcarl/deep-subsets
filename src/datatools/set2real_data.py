@@ -46,7 +46,7 @@ class MNISTSets(torch.utils.data.Dataset):
         elif self.target == 'max':
             target = torch.max(labels.float())
         elif self.target == '2max':
-            target = torch.sort(labels.float())[-2]
+            target = torch.sort(labels.float())[0][-2]
         return data, target
     
     def __len__(self):
