@@ -76,6 +76,9 @@ def main(args):
 
     # save some of the predictions:
     x, y = next(iter(datasets[0]))
+    if CUDA:
+        x = x.cuda()
+        y = y.cuda()
     plot_preds(x[0], y[0], net).savefig(os.path.join(folder_path, 'example1.pdf'))
     plot_preds(x[1], y[1], net).savefig(os.path.join(folder_path, 'example2.pdf'))
     plot_preds(x[2], y[2], net).savefig(os.path.join(folder_path, 'example3.pdf'))
@@ -110,6 +113,8 @@ def main(args):
             set_sizes.append(set_size)
             mse.append(loss.data[0])
 
+    print(set_sizes)
+    print(mse)
     f = plt.figure()
     ax = f.add_subplot(111)
     ax.plot(set_sizes, mse, '-')
