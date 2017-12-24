@@ -1,2 +1,2 @@
 from .context_free_encoders import ContextFreeEncoder
-from .context_based_encoders import ContextBasedLinear
+from .context_based_encoders import ContextBasedLinear, ContextBasedMultiChannelLinear
