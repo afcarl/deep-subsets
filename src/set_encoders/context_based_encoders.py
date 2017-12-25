@@ -60,6 +60,7 @@ class ContextBasedMultiChannelLinear(nn.Module):
         batch_size, set_size, element_dim = x.size()
         x_max = x_max = torch.max(x, dim=1)[0]
         x = x - x_max.repeat(1, 1, set_size).view(batch_size, set_size, element_dim)
+        # x = F.linear(x, self.gamma, self.beta) why doesn't this work?
         x = self.beta + torch.matmul(x, self.gamma)
         if self.nonlinearity:
             x = self.nonlinearity(x)
