@@ -128,6 +128,7 @@ def main(args):
     ax.set_ylabel('MSE')
     f.savefig(os.path.join(folder_path, 'generalization.pdf'))
 
+    net.cpu()
     torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
 

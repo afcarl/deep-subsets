@@ -66,6 +66,7 @@ def main(args):
         if n % 10 == 0:
             print('epoch: {}, loss: {}'.format(n, loss.cpu().data[0]))
 
+    net.cpu()
     torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
 
