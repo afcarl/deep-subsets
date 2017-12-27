@@ -38,8 +38,8 @@ def main(args):
 
     if torch.cuda.is_available() and args.gpu != '':
         net.cuda()
-        optimizer.cuda()
-        criterion.cuda()
+        optimizer
+        criterion
         CUDA = True
         print('Using GPU')
 
@@ -67,6 +67,8 @@ def main(args):
 
         if n % 10 == 0:
             print('epoch: {}, loss: {}'.format(n, loss.cpu().data[0]))
+
+    torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
 
 
