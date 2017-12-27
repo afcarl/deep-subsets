@@ -1,0 +1,3 @@
+[submodule "subset-sum"]
+	path = subset-sum
+	url = https://github.com/saltycrane/subset-sum.git
