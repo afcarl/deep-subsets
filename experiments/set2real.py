@@ -43,7 +43,7 @@ def main(args):
         ]
 
     if args.architecture == 'set':
-        net = Set2RealNet(encode_set=True)
+        net = Set2RealNet(encode_set=False)
     elif args.architecture == 'seq':
         net = Seq2RealNet()
     else:
@@ -95,7 +95,7 @@ def main(args):
         (i, torch.utils.data.DataLoader(
             MNISTSets(64, set_sizes=[i], target=args.task, train=True),
             batch_size=64))
-        for i in range(4,20)
+        for i in range(4,100)
         ]
 
     set_sizes = []
