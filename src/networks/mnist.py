@@ -49,9 +49,9 @@ class Set2RealNet(nn.Module):
         # self.linearout = nn.Linear(32, 1)
 
 
-        self.l1 = torch.nn.Linear(128, 128)
-        self.l2 = torch.nn.Linear(128, 100)
-        self.l3 = torch.nn.Linear(100, 1)
+        self.l1 = nn.Linear(128, 128)
+        self.l2 = nn.Linear(128, 100)
+        self.l3 = nn.Linear(100, 1)
         self.relu = nn.ReLU()
         
     def forward(self, x):
@@ -86,9 +86,9 @@ class Seq2RealNet(nn.Module):
         # self.linearout = nn.Linear(64, 1)
 
         # attempt to make it more equal to the set based method
-        self.lstm = torch.nn.LSTM(128, 32, 2)
+        self.lstm = nn.LSTM(128, 32, 2)
         self.relu = nn.ReLU()
-        self.linearout = torch.nn.Linear(32, 1)
+        self.linearout = nn.Linear(32, 1)
 
     def forward(self, x):
         x = self.cfe(x)
