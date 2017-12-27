@@ -66,6 +66,38 @@ def main(args):
         if n % 10 == 0:
             print('epoch: {}, loss: {}'.format(n, loss.cpu().data[0]))
 
+
+    #TODO: fix the train=True to train=False
+    datasets = [
+        (i, torch.utils.data.DataLoader(
+            MNISTSubsets(64, set_sizes=[i]),
+            batch_size=64))
+        for i in range(4,100)
+        ]
+
+    set_sizes = []
+    mse = []
+
+    for set_size, dataset in datasets:
+        for i, (x, y) in enumerate(dataset):
+            # prepare the data
+            if CUDA:
+                x = x.cuda()
+                y = y.cuda()
+            x, y = Variable(x, volatile=True), Variable(y, volatile=True)
+
+            # run it through the network
+            y_hat = net(x).squeeze()
+
+            # calculate the loss
+            loss = criterion(y_hat.float(), y.float())
+            if CUDA:
+                loss = loss.cpu()
+            set_sizes.append(set_size)
+            mse.append(loss.data[0])
+
+    print(set_sizes)
+    print(mse)
     net.cpu()
     torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
