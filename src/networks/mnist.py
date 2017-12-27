@@ -34,32 +34,37 @@ class Set2RealNet(nn.Module):
         
         self.cfe = ContextFreeEncoder(cfe, '2d')
         self.flatten = FlattenElements()
-        if encode_set:
-            self.cbl1 = ContextBasedLinear(nonlinearity=nn.ReLU)
-            self.cbl2 = ContextBasedLinear(nonlinearity=nn.ReLU)
-            self.encode_set = True
-        else:
-            self.encode_set = False
+        # if encode_set:
+        #     self.cbl1 = ContextBasedLinear(nonlinearity=nn.ReLU)
+        #     self.cbl2 = ContextBasedLinear(nonlinearity=nn.ReLU)
+        #     self.encode_set = True
+        # else:
+        self.encode_set = False
 
         self.lss = LinearSumSet()
-        self.lineartoh = nn.Linear(128, 64)
+        # self.lineartoh1 = nn.Linear(128, 128)
+        # self.relu = nn.ReLU()
+        # self.lineartoh2 = nn.Linear(128, 32)
+        # self.relu = nn.ReLU()
+        # self.linearout = nn.Linear(32, 1)
+
+
+        self.l1 = torch.nn.Linear(128, 128)
+        self.l2 = torch.nn.Linear(128, 100)
+        self.l3 = torch.nn.Linear(100, 1)
         self.relu = nn.ReLU()
-        self.linearout = nn.Linear(64, 1)
         
     def forward(self, x):
         x = self.cfe(x) # encode individual images
         x = self.flatten(x) # flatten individual images
-
-        if self.encode_set:
-            x = self.cbl1(x) # encode the set
-            x = self.cbl2(x) # encode the set
-
         x = self.lss(x) # collapse the set
 
         # final rho function is a simple 2 layer NN
-        x = self.lineartoh(x) 
+        x = self.l1(x) 
         x = self.relu(x)
-        x = self.linearout(x)
+        x = self.l2(x)
+        x = self.relu(x)
+        x = self.l3(x)
         return x
 
 class Seq2RealNet(nn.Module):
@@ -76,9 +81,14 @@ class Seq2RealNet(nn.Module):
         self.cfe = ContextFreeEncoder(cfe, '2d')
         self.flatten = FlattenElements()
 
-        self.lstm = nn.LSTM(128, 64, 1)
+        # self.lstm = nn.LSTM(128, 64, 1)
+        # self.relu = nn.ReLU()
+        # self.linearout = nn.Linear(64, 1)
+
+        # attempt to make it more equal to the set based method
+        self.lstm = torch.nn.LSTM(128, 32, 2)
         self.relu = nn.ReLU()
-        self.linearout = nn.Linear(64, 1)
+        self.linearout = torch.nn.Linear(32, 1)
 
     def forward(self, x):
         x = self.cfe(x)
