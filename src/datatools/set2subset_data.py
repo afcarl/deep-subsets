@@ -3,8 +3,9 @@ from .set2real_data import MNISTSets
 
 class MNISTSubsets(MNISTSets):
     def __init__(self, *args, **kwargs):
-        target = kwargs.get('target', None)
+        target = kwargs.get('target', 'avg')
         assert target in ['avg', 'mean']
+
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, index):
