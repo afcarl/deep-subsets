@@ -38,8 +38,6 @@ def main(args):
 
     if torch.cuda.is_available() and args.gpu != '':
         net.cuda()
-        optimizer
-        criterion
         CUDA = True
         print('Using GPU')
 
