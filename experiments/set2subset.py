@@ -77,6 +77,7 @@ def main(args):
 
     set_sizes = []
     mse = []
+    acc = []
 
     for set_size, dataset in datasets:
         for i, (x, y) in enumerate(dataset):
@@ -95,9 +96,11 @@ def main(args):
                 loss = loss.cpu()
             set_sizes.append(set_size)
             mse.append(loss.data[0])
+            acc.append(set_accuracy(y, y_hat).data[0])
 
     print(set_sizes)
     print(mse)
+    print(acc)
     net.cpu()
     torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
