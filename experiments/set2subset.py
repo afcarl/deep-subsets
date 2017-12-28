@@ -101,6 +101,7 @@ def main(args):
     print(set_sizes)
     print(mse)
     print(acc)
+    print(torch.FloatTensor(acc).mean())
     net.cpu()
     torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
