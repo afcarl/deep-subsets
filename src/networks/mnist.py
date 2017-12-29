@@ -1,5 +1,8 @@
 import torch.nn as nn
-from src.set_encoders import ContextBasedLinear, ContextBasedMultiChannelLinear, ContextFreeEncoder
+from src.set_encoders import (
+    ContextBasedLinear,
+    ContextBasedMultiChannelLinear,
+    ContextFreeEncoder)
 from src.set_decoders import LinearSumSet, SimpleSubset
 from src.util_layers import FlattenElements
 
@@ -126,3 +129,38 @@ class Set2SubsetNet(nn.Module):
         if not self.logprobs:
             x = F.sigmoid(x)
         return x
+
+class Set2SubsetNetNull(nn.Module):
+    def __init__(self, logprobs=True):
+        super().__init__()
+        mnist_extractor = get_MNIST_extractor() 
+        classifier = nn.Sequential(mnist_extractor,
+                          nn.Linear(128, 128),
+                          nn.ReLU(),
+                          nn.Linear(128, 64),
+                          nn.ReLU(),
+                          nn.Linear(64, 1))
+        self.cfe = ContextFreeEncoder(classifier, '2d')
+        self.logprobs = logprobs
+
+    def forward(self, x):
+        x = self.cfe(x)
+        if not self.logprobs:
+            x = F.sigmoid(x)
+        return x
+
+# def Seq2SubsetNet(nn.Module):
+#     """
+#     Used when the input is to be interpreted as a sequence of MNIST digits
+#     and the output is a subset of those elements as indicated by probabilities
+#     """
+
+#     def __init__(self, logprobs=True):
+#         super().__init__()
+#         # per element encoder is a conv neural network
+#         cfe = get_MNIST_extractor()
+        
+#         self.cfe = ContextFreeEncoder(cfe, '2d')
+#         self.flatten = FlattenElements()
+#         self.lstm = nn.LSTM(...)
+        
