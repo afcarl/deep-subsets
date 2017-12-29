@@ -19,7 +19,7 @@ class MNISTSets(torch.utils.data.Dataset):
                         available: (avg, mean, sum, max, 2max)
         :param data_location: the location where the data is stored.
         """
-        assert target in ['avg', 'mean', 'sum', 'max', '2max']
+        assert target in ['avg', 'mean', 'sum', 'max', '2max', 'gt5']
         datas = []
         data_per_set_size = math.ceil(data_size / len(set_sizes))
         for set_size in set_sizes:
@@ -47,6 +47,8 @@ class MNISTSets(torch.utils.data.Dataset):
             target = torch.max(labels.float())
         elif self.target == '2max':
             target = torch.sort(labels.float())[0][-2]
+        elif self.target == 'gt5':
+            target = 4.99
         return data, target, labels
 
     def __getitem__(self, index):

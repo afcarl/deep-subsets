@@ -4,7 +4,7 @@ from .set2real_data import MNISTSets
 class MNISTSubsets(MNISTSets):
     def __init__(self, *args, **kwargs):
         target = kwargs.get('target', 'avg')
-        assert target in ['avg', 'mean']
+        assert target in ['avg', 'mean', 'gt5']
 
         super().__init__(*args, **kwargs)
 
@@ -13,3 +13,4 @@ class MNISTSubsets(MNISTSets):
         set_size = labels.size()
         subset = labels.float().ge(target)
         return data, subset
+

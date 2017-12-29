@@ -9,7 +9,7 @@ from torch.autograd import Variable
 import torch
 import random
 import numpy as np
-from src.networks.mnist import Set2SubsetNet
+from src.networks.mnist import Set2SubsetNet, Set2SubsetNetNull
 from src.datatools import MNISTSubsets
 from src.util_io import create_folder
 
@@ -21,13 +21,15 @@ def main(args):
     # create some different datasets for training:
     datasets = [
         torch.utils.data.DataLoader(
-            MNISTSubsets(10000, set_sizes=[i]),
+            MNISTSubsets(10000, set_sizes=[i], target=args.target),
             batch_size=64)
         for i in range(4,10)
         ]
 
     if args.architecture == 'set':
         net = Set2SubsetNet()
+    elif args.architecture == 'null':
+        net = Set2SubsetNetNull()
     elif args.architecture == 'seq':
         raise NotImplementedError('Sequence architecture is not yet implemented')
     else:
@@ -70,7 +72,7 @@ def main(args):
     #TODO: fix the train=True to train=False
     datasets = [
         (i, torch.utils.data.DataLoader(
-            MNISTSubsets(64, set_sizes=[i]),
+            MNISTSubsets(64, set_sizes=[i], target=args.target),
             batch_size=64))
         for i in range(4,100)
         ]
@@ -117,7 +119,7 @@ if __name__ == '__main__':
                         required=True)
     parser.add_argument('-a',
                         '--architecture',
-                        help='Architecture to use (set, seq)',
+                        help='Architecture to use (set, null, seq)',
                         type=str,
                         required=False,
                         default='set')
