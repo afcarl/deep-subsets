@@ -21,7 +21,7 @@ def main(args):
     # create some different datasets for training:
     datasets = [
         torch.utils.data.DataLoader(
-            MNISTSubsets(10000, set_sizes=[i], target=args.target),
+            MNISTSubsets(10000, set_sizes=[i], target=args.task),
             batch_size=64)
         for i in range(4,10)
         ]
@@ -72,7 +72,7 @@ def main(args):
     #TODO: fix the train=True to train=False
     datasets = [
         (i, torch.utils.data.DataLoader(
-            MNISTSubsets(64, set_sizes=[i], target=args.target),
+            MNISTSubsets(64, set_sizes=[i], target=args.task),
             batch_size=64))
         for i in range(4,100)
         ]
