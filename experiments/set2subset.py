@@ -12,6 +12,7 @@ import numpy as np
 from src.networks.mnist import Set2SubsetNet, Set2SubsetNetNull
 from src.datatools import MNISTSubsets
 from src.util_io import create_folder
+from src.metrics import set_accuracy
 
 def main(args):
     CUDA = False
