@@ -81,6 +81,7 @@ def main(args):
     set_sizes = []
     mse = []
     acc = []
+    torch.save(net, os.path.join(folder_path, 'model-gpu.pyt'))
 
     for set_size, dataset in datasets:
         for i, (x, y) in enumerate(dataset):
