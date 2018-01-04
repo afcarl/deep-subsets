@@ -1,12 +1,9 @@
 import torch
 import numpy as np
 import math
-from torch.utils.data import Dataset
+from .numbers_data import NumbersDataset
 
-def create_instance(size, integer_range):
-    return 
-
-class SubsetSum(Dataset):
+class SubsetSum(NumbersDataset):
     """
     Creates a subset sum dataset. 
     Each subset contains integer elements
@@ -16,7 +13,7 @@ class SubsetSum(Dataset):
     def __init__(self,
                  dataset_size,
                  set_size,
-                 integer_range,
+                 max_integer,
                  target=0,
                  seed=0):
         """
@@ -26,51 +23,43 @@ class SubsetSum(Dataset):
         :param target: the target sum needed
         :param seed: the random seed to use
         """
-        self.rng = np.random.RandomState(seed)
-        self.dataset_size = dataset_size
-        self.set_size = set_size
-        self.integer_range = integer_range
-        self.target = target
-        self.refresh_dataset()
-        self.set_rewards(negative=-10, positive=0)
-    
-    def set_rewards(self, positive=+10, negative=-10):
-        self.negative_reward = negative
-        self.positive_reward = positive
+        super().__init__(dataset_size, set_size, max_integer, seed=seed)
+        self.sum_target = sum_target
 
-    def refresh_dataset(self):
-        data = self.rng.randint(-self.integer_range,
-                                 self.integer_range,
-                                 size=(self.dataset_size, self.set_size))
+    def reward_function(self, data, selected_elements):
+        """
+        Calculates the reward for picking the data
+        :param data: must be a torch tensor or numpy array
+                       of size (batch_size, set_size, 8)
+        :param selected_elements: the output of a neural network
+                        that selects elements from 'data' 
+                        based on boolean selection values of 
+                        the same shape
+        """
+        if type(data) != np.ndarray:
+            data = data.numpy()
+            selected_elements = selected_elements.numpy()
+        batch_size, set_size, _ = data.shape
+        numbers = np.packbits(data, 2).reshape(batch_size, set_size)
+        selected_elements = selected_elements.reshape(batch_size, set_size)
 
-        self.data = torch.from_numpy(data)
+        # doing this to identify sets which are empty
+        # there is a small penalty for returning empty sets but not
+        # as much as returning a wrong set.
+        # 1: multiply the data and indices to select elements
+        #    this will only select the non-zero elements
+        #    all sets will have 0 as an element
+        # 2: convert the numpy array to a list
+        # 3: map a set over the lists produces
+        # 4: cast the generator to list
+        sets = list(map(set, (numbers * selected_elements).tolist()))
+        rewards = []
+        for set_i in sets:
+            if len(set_i) == 1 and list(set_i)[0] == 0:
+                rewards.append(self.empty_subset_reward)
+            else:
+                rewards.append(-abs(sum(set_i)-self.sum_target))
+        return torch.FloatTensor(rewards)
 
-        return data
 
-    def __len__(self):
-        return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.data[index]
-
-    def solution_check(self, fullset, subset):
-        is_subset = set(subset).issubset(fullset)
-        subset_sum = sum(subset)
-        return int(is_subset and subset_sum == self.target), is_subset, subset_sum
-
-    def reward_function(self, fullset, subset):
-        correct, is_subset, subset_sum = self.solution_check(fullset, subset)
-        # print('correct?', correct)
-        # print('is_subset?', is_subset)
-        # print('subset_sum?',subset_sum)
-
-        # unnecessary subset if statement? 
-        # you're always picking a subset...
-        if is_subset:
-            # get a partial reward for returning a subset
-            # based on how far you are from 0
-            return -abs(self.target - subset_sum)
-        else:
-            # get a negative reward for not returning a subset
-            return self.negative_reward
 
