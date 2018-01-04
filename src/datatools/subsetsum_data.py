@@ -25,18 +25,34 @@ class SubsetSum(NumbersDataset):
         """
         super().__init__(dataset_size, set_size, max_integer, seed=seed)
         self.sum_target = target
+        self.empty_subset_reward = -1
 
-    def reward_function(self, data, selected_elements):
+    def reward_function(self, data, selected_elements=None, bit_representation=True):
         """
         Calculates the reward for picking the data
         :param data: must be a torch tensor or numpy array
-                       of size (batch_size, set_size, 8)
+                       of sizes:
+                        if selected_elements is given 
+                            (batch_size, set_size, 8) 
+                            you can use bit_representation parameter
+                            to convert automatically.
+                        otherwise it should be 
+                            (batch_size, set_size)
+                            where you can pad the set with 0s
         :param selected_elements: the output of a neural network
                         that selects elements from 'data' 
                         based on boolean selection values of 
-                        the same shape
+                        the same shape. If this is not given,
+                        it is assumed that data contains the subsets
+                        already
         """
-        sets = self.subset_elements(data, selected_elements, bit_representation=True)
+        if selected_elements:
+            sets = self.subset_elements(data,
+                                        selected_elements,
+                                        bit_representation=bit_representation)
+        else:
+            sets = data.tolist()
+
         rewards = []
         for set_i in sets:
             if len(set_i) == 0: # check if empty
