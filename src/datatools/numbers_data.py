@@ -42,9 +42,6 @@ class NumbersDataset(Dataset):
         self.bit_data = torch.from_numpy(bit_data)
         self.data = torch.from_numpy(data)
 
-        # check if 
-        # print(self.data.size())
-        # print()
         assert tuple(self.bit_data.size()) == (self.dataset_size, self.set_size, 8)
         return data
 
@@ -56,3 +53,47 @@ class NumbersDataset(Dataset):
 
     def __getitem__(self, index):
         return self._get_data(index)[1]
+
+    def int_list_to_bit_array(self, list_of_numbers):
+        list_of_numbers = np.array(list_of_numbers,
+                                   dtype=np.uint8).reshape(1, -1, 1)
+        bit_data = np.unpackbits(list_of_numbers, 2)
+        return torch.from_numpy(bit_data)
+
+    def bit_array_to_int_array(self, bit_repr):
+        if type(bit_repr) != np.ndarray:
+            bit_repr = bit_repr.numpy()
+        
+        batch_size, set_size, _ = bit_repr.shape
+        return np.packbits(bit_repr, 2).reshape(batch_size, set_size)
+
+    def subset_elements(self, data, selection_idx, bit_representation=True):
+        if type(selection_idx) != np.ndarray:
+            selected_elements = selection_idx.numpy()
+        
+        batch_size, set_size, _ = data.shape
+
+        if bit_representation:
+            numbers = self.bit_array_to_int_array(data)
+        else:
+            if type(data) != np.ndarray:
+                numbers = data.numpy()
+            else:
+                numbers = data
+            numbers = numbers.reshape(batch_size, set_size)
+
+        # doing this to identify sets which are empty
+        # there is a small penalty for returning empty sets but not
+        # as much as returning a wrong set.
+        # 1: multiply the data and indices to select elements
+        #    this will only select the non-zero elements
+        #    all sets will have 0 as an element
+        # 2: convert the numpy array to a list of lists
+
+        selected_elements = selected_elements.reshape(batch_size, set_size)
+        sets = (numbers * selected_elements).tolist()
+
+        # 3: filter out all the zero elements in each set
+        filtered_sets = list(map(lambda set_: list(filter(lambda element: element>0, set_)), sets))
+
+        return filtered_sets

@@ -36,24 +36,10 @@ class SubsetSum(NumbersDataset):
                         based on boolean selection values of 
                         the same shape
         """
-        if type(data) != np.ndarray:
-            data = data.numpy()
-            selected_elements = selected_elements.numpy()
-        batch_size, set_size, _ = data.shape
-        numbers = np.packbits(data, 2).reshape(batch_size, set_size)
-        selected_elements = selected_elements.reshape(batch_size, set_size)
-
-        # doing this to identify sets which are empty
-        # there is a small penalty for returning empty sets but not
-        # as much as returning a wrong set.
-        # 1: multiply the data and indices to select elements
-        #    this will only select the non-zero elements
-        #    all sets will have 0 as an element
-        # 2: convert the numpy array to a list of lists
-        sets = (numbers * selected_elements).tolist()
+        sets = self.subset_elements(data, selected_elements, bit_representation=True)
         rewards = []
         for set_i in sets:
-            if np.all(np.array(set_i) == 0): # check if empty
+            if len(set_i) == 0: # check if empty
                 rewards.append(self.empty_subset_reward)
             else:
                 rewards.append(-abs(sum(set_i)-self.sum_target))
