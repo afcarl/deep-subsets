@@ -14,7 +14,7 @@ class SubsetSum(NumbersDataset):
                  dataset_size,
                  set_size,
                  max_integer,
-                 target=0,
+                 target=1,
                  seed=0):
         """
         :param dataset_size: the size of the dataset
@@ -24,7 +24,7 @@ class SubsetSum(NumbersDataset):
         :param seed: the random seed to use
         """
         super().__init__(dataset_size, set_size, max_integer, seed=seed)
-        self.sum_target = sum_target
+        self.sum_target = target
 
     def reward_function(self, data, selected_elements):
         """
@@ -49,13 +49,11 @@ class SubsetSum(NumbersDataset):
         # 1: multiply the data and indices to select elements
         #    this will only select the non-zero elements
         #    all sets will have 0 as an element
-        # 2: convert the numpy array to a list
-        # 3: map a set over the lists produces
-        # 4: cast the generator to list
-        sets = list(map(set, (numbers * selected_elements).tolist()))
+        # 2: convert the numpy array to a list of lists
+        sets = (numbers * selected_elements).tolist()
         rewards = []
         for set_i in sets:
-            if len(set_i) == 1 and list(set_i)[0] == 0:
+            if np.all(np.array(set_i) == 0): # check if empty
                 rewards.append(self.empty_subset_reward)
             else:
                 rewards.append(-abs(sum(set_i)-self.sum_target))

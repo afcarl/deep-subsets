@@ -43,7 +43,9 @@ class NumbersDataset(Dataset):
         self.data = torch.from_numpy(data)
 
         # check if 
-        assert tuple(self.data.size()) == (self.dataset_size, self.set_size, 8)
+        # print(self.data.size())
+        # print()
+        assert tuple(self.bit_data.size()) == (self.dataset_size, self.set_size, 8)
         return data
 
     def _get_data(self, index):
