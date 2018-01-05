@@ -63,7 +63,7 @@ def main(args):
     #         log_probs = log_probs[0].permute(1, 0, 2)
             policy = torch.distributions.Bernoulli(sigmoid(log_probs))
             actions = policy.sample()
-            R = ss.dataset.reward_function(x.data.byte(), actions.data.byte())
+            R = ss.dataset.reward_function(x.cpu().data.byte(), actions.cpu().data.byte())
             
             if CUDA:
                 R = R.cuda()
@@ -86,8 +86,9 @@ def main(args):
         losses.append(loss.data[0])
         
         if epoch % 50 == 0:
-            subsets = ss.dataset.subset_elements(x.data.byte(), actions.data.byte(), bit_representation=True)
-            sets = ss.dataset.bit_array_to_int_array(x.data.byte()).tolist()
+            x_cpu = x.cpu().data.byte()
+            subsets = ss.dataset.subset_elements(x_cpu, actions.cpu().data.byte(), bit_representation=True)
+            sets = ss.dataset.bit_array_to_int_array(x_cpu).tolist()
             pairs = list(zip(sets, subsets))[:5]
             _sums = []
             for x, y in pairs:
