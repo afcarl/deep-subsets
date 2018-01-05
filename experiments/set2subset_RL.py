@@ -19,16 +19,17 @@ from torch.autograd import Variable
 from torch.nn.functional import sigmoid
 from torch.optim import Adam, lr_scheduler
 
-# create some different datasets for training:
-set_sizes = list(range(5, 15))
-ss_datasets = [
-    SubsetSum(10000, i, 5,
-              target=10,
-              empty_subset_reward=args.empty_subset_reward,
-              correct_subset_reward=args.correct_subset_reward) for i in set_sizes]
-dataloaders = [DataLoader(ss_dset, batch_size=128) for ss_dset in ss_datasets ]
-
 def main(args):
+
+    # create some different datasets for training:
+    set_sizes = list(range(5, 15))
+    ss_datasets = [
+        SubsetSum(10000, i, 5,
+                  target=10,
+                  empty_subset_reward=args.empty_subset_reward,
+                  correct_subset_reward=args.correct_subset_reward) for i in set_sizes]
+    dataloaders = [DataLoader(ss_dset, batch_size=128) for ss_dset in ss_datasets ]
+
     CUDA = False
     folder_name = args.name+'_subsetsum_'+args.architecture
     folder_path = os.path.join('./', folder_name)
