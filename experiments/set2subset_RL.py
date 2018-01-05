@@ -3,6 +3,8 @@ import numpy as np
 import sys
 import random
 import json
+import os
+import math
 sys.path.append(os.path.abspath('..'))
 import argparse
 # sys.path.append('../subset-sum')
@@ -19,7 +21,11 @@ from torch.optim import Adam, lr_scheduler
 
 # create some different datasets for training:
 set_sizes = list(range(5, 15))
-ss_datasets = [SubsetSum(10000, i, 5, target=10, empty_subset_reward=-100) for i in set_sizes]
+ss_datasets = [
+    SubsetSum(10000, i, 5,
+              target=10,
+              empty_subset_reward=args.empty_subset_reward,
+              correct_subset_reward=args.correct_subset_reward) for i in set_sizes]
 dataloaders = [DataLoader(ss_dset, batch_size=128) for ss_dset in ss_datasets ]
 
 def main(args):
@@ -121,6 +127,18 @@ if __name__ == '__main__':
                         type=str,
                         required=False,
                         default='')
+    parser.add_argument('-empty_r',
+                        '--empty_subset_reward',
+                        help='Empty Subset Reward',
+                        type=int,
+                        required=False,
+                        default=-1)
+    parser.add_argument('-correct_r',
+                        '--correct_subset_reward',
+                        help='Correct Subset Reward',
+                        type=int,
+                        required=False,
+                        default=None)
     parser.add_argument('-n',
                         '--name',
                         help='Name of the experiment',
