@@ -24,7 +24,7 @@ dataloaders = [DataLoader(ss_dset, batch_size=128) for ss_dset in ss_datasets ]
 
 def main(args):
     CUDA = False
-    folder_name = args.name+'_'+args.task+'_'+args.architecture
+    folder_name = args.name+'_subsetsum_'+args.architecture
     folder_path = os.path.join('./', folder_name)
     create_folder(folder_name)
     sums = []
@@ -45,7 +45,7 @@ def main(args):
     rewards = []
     losses = []
     advantages = []
-    for epoch in range(EPOCHS):
+    for epoch in range(args.epochs):
         ss = random.sample(dataloaders[:math.ceil((epoch+1)/increase_every)], 1)[0]
         ss.dataset.refresh_dataset()
         for i, x in enumerate(ss):
@@ -99,11 +99,11 @@ def main(args):
                 losses=losses), f)
 
     torch.save(net, os.path.join(folder_path, 'model-gpu.pyt'))
-    
+
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser('set2subset experiments')
+    parser = argparse.ArgumentParser('set2subset_RL experiments')
     parser.add_argument('-e',
                         '--epochs',
                         help='Number of epochs to train',
@@ -111,16 +111,10 @@ if __name__ == '__main__':
                         required=True)
     parser.add_argument('-a',
                         '--architecture',
-                        help='Architecture to use (set, null, seq)',
+                        help='Architecture to use (set, seq)',
                         type=str,
                         required=False,
                         default='set')
-    parser.add_argument('-t',
-                        '--task',
-                        help='The task',
-                        type=str,
-                        required=False,
-                        default='avg')
     parser.add_argument('-g',
                         '--gpu',
                         help='The gpu to use',
