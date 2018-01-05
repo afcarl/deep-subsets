@@ -5,6 +5,7 @@ from src.set_encoders import (
     ContextFreeEncoder)
 from src.set_decoders import LinearSumSet, SimpleSubset
 from src.util_layers import FlattenElements
+import torch.nn.functional as F
 
 class ElementFlatten(nn.Module):
     def forward(self, x):

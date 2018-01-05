@@ -14,6 +14,8 @@ class SubsetSum(NumbersDataset):
                  dataset_size,
                  set_size,
                  max_integer,
+                 empty_subset_reward=-1,
+                 correct_subset_reward=None,
                  target=1,
                  seed=0):
         """
@@ -25,7 +27,8 @@ class SubsetSum(NumbersDataset):
         """
         super().__init__(dataset_size, set_size, max_integer, seed=seed)
         self.sum_target = target
-        self.empty_subset_reward = -1
+        self.empty_subset_reward = empty_subset_reward
+        self.correct_subset_reward = correct_subset_reward
 
     def reward_function(self, data, selected_elements=None, bit_representation=True):
         """
@@ -46,7 +49,7 @@ class SubsetSum(NumbersDataset):
                         it is assumed that data contains the subsets
                         already
         """
-        if selected_elements:
+        if selected_elements is not None:
             sets = self.subset_elements(data,
                                         selected_elements,
                                         bit_representation=bit_representation)
@@ -58,7 +61,13 @@ class SubsetSum(NumbersDataset):
             if len(set_i) == 0: # check if empty
                 rewards.append(self.empty_subset_reward)
             else:
-                rewards.append(-abs(sum(set_i)-self.sum_target))
+                if not self.correct_subset_reward:
+                    rewards.append(-abs(sum(set_i)-self.sum_target))
+                else:
+                    if sum(set_i) == self.sum_target:
+                        rewards.append(self.correct_subset_reward)
+                    else:
+                        rewards.append(self.empty_subset_reward)
         return torch.FloatTensor(rewards)
 
 
