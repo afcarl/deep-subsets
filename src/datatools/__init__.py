@@ -1,4 +1,4 @@
 from .set2real_data import MNISTSets
 from .set2subset_data import MNISTSubsets
-from .subsetsum_data import SubsetSum
-from .numbers_data import NumbersDataset, IntergersLargerThanAverage
+from .digit_RL_data import SubsetSum, IntergersLargerThanAverage
+from .numbers_data import NumbersDataset

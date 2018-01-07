@@ -97,13 +97,3 @@ class NumbersDataset(Dataset):
         filtered_sets = list(map(lambda set_: list(filter(lambda element: element>0, set_)), sets))
 
         return filtered_sets
-
-
-class IntergersLargerThanAverage(NumbersDataset):
-    def __getitem__(self, index):
-        raw_data, bit_data = self._get_data(index)
-        subset = raw_data.float().ge(raw_data.float().mean())
-        return bit_data, subset
-
-
-
