@@ -22,7 +22,7 @@ from src.datatools import IntegerSubsetsSupervised
 from src.util_io import create_folder
 from src.metrics import set_accuracy
 
-increase_every = 5
+increase_every = 1
 
 def main(args):
     CUDA = False
@@ -46,7 +46,7 @@ def main(args):
     else:
         raise ValueError('Unknown architecture. Must be set or null!')
     
-    optimizer = torch.optim.Adam(net.parameters())
+    optimizer = torch.optim.Adam(net.parameters(), weight_decay=1e-5, lr=1e-5)
     criterion = torch.nn.BCEWithLogitsLoss()
 
     if torch.cuda.is_available() and args.gpu != '':
@@ -155,7 +155,16 @@ if __name__ == '__main__':
                         type=str,
                         required=True,
                         default='experiment')
+    parser.add_argument('-s',
+                        '--seed',
+                        help='Seed',
+                        type=str,
+                        required=False,
+                        default=0)
     args = parser.parse_args()
+    np.random.seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
+    torch.manual_seed(args.seed)
 
     # specify GPU ID on target machine
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
