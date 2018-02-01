@@ -11,10 +11,13 @@ class IntegerSubsetNet(nn.Module):
         super().__init__()
 
         self.null_model = null_model
-        cfe = nn.Sequential(nn.Linear(8, 8),
+        cfe = nn.Sequential(nn.Linear(8, 16),
                             nn.ReLU(),
-                            nn.Linear(8, 8) if not null_model else nn.Linear(8, 1),
-                            nn.ReLU())
+                            nn.Linear(16, 16),
+                            nn.ReLU(),
+                            nn.Linear(16, 8) if not null_model else nn.Linear(8, 1),
+                            nn.ReLU()
+                            )
         self.cfe = ContextFreeEncoder(cfe, '1d')
         if not self.null_model:
             self.cbe = ContextBasedMultiChannelLinear(8, 8, nonlinearity=nn.ReLU)

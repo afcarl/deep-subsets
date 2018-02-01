@@ -32,8 +32,8 @@ def main(args):
     # create some different datasets for training:
     dataloaders = [
         torch.utils.data.DataLoader(
-            IntegerSubsetsSupervised(10000, i, 10, target=args.task),
-            batch_size=64)
+            IntegerSubsetsSupervised(20000, i, 10, target=args.task),
+            batch_size=128)
         for i in range(4,10)
         ]
 
@@ -46,9 +46,9 @@ def main(args):
     else:
         raise ValueError('Unknown architecture. Must be set or null!')
     
-    optimizer = torch.optim.Adam(net.parameters(), weight_decay=1e-5, lr=1e-5)
+    optimizer = torch.optim.Adam(net.parameters(), weight_decay=1e-5, lr=1e-3)
     criterion = torch.nn.BCEWithLogitsLoss()
-
+    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=1e-5)
     if torch.cuda.is_available() and args.gpu != '':
         net.cuda()
         CUDA = True
@@ -74,9 +74,11 @@ def main(args):
             # update parameters
             loss.backward()
             optimizer.step()
+        lr_scheduler.step()
 
         if n % 10 == 0:
-            print('epoch: {}, loss: {}, set acc: {}'.format(n, loss.cpu().data[0], set_accuracy(y.squeeze(), y_hat.squeeze()).data[0]))
+            set_acc, elem_acc = set_accuracy(y.squeeze(), y_hat.squeeze())
+            print('epoch: {}, loss: {}, set acc: {}, elem_acc: {}'.format(n, loss.cpu().data[0], set_acc.data[0], elem_acc.data[0]))
 
 
     #TODO: fix the train=True to train=False
@@ -89,7 +91,8 @@ def main(args):
 
     set_sizes = []
     mse = []
-    acc = []
+    set_accs = []
+    elem_accs = []
     torch.save(net, os.path.join(folder_path, 'model-gpu.pyt'))
 
     for set_size, dataset in datasets:
@@ -108,17 +111,20 @@ def main(args):
                 loss = loss.cpu()
             set_sizes.append(set_size)
             mse.append(loss.data[0])
-            acc.append(set_accuracy(y.squeeze(), y_hat.squeeze()).data[0])
+            set_acc, elem_acc = set_accuracy(y.squeeze(), y_hat.squeeze())
+            set_accs.append(set_acc.data[0])
+            elem_accs.append(elem_acc.data[0])
 
     print(set_sizes)
     print(mse)
-    print(acc)
-    print(torch.FloatTensor(acc).mean())
+    print(set_accs)
+    print(torch.FloatTensor(set_accs).mean())
     net.cpu()
     torch.save({'set_sizes': set_sizes,
                 'mse':mse,
-                'acc':acc,
-                'mean_acc':torch.FloatTensor(acc).mean()}, os.path.join(folder_path, 'results.json'))
+                'set_acc':set_accs,
+                'elem_accs': elem_accs,
+                'mean_acc':torch.FloatTensor(set_accs).mean()}, os.path.join(folder_path, 'results.json'))
     torch.save(net, os.path.join(folder_path, 'model.pyt'))
 
 
