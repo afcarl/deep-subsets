@@ -40,13 +40,13 @@ class NumbersDataset(Dataset):
 
         # create torch tensors:
         self.bit_data = torch.from_numpy(bit_data)
-        self.data = torch.from_numpy(data)
+        self.data = torch.from_numpy(data).float()
 
         assert tuple(self.bit_data.size()) == (self.dataset_size, self.set_size, 8)
         return data
 
     def _get_data(self, index):
-        return self.data[index], self.bit_data[index]
+        return self.data[index].float(), self.bit_data[index].float()
 
     def __len__(self):
         return self.dataset_size
