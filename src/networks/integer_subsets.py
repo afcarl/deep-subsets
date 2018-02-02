@@ -2,11 +2,13 @@ import torch.nn as nn
 from src.set_encoders import ContextBasedLinear, ContextBasedMultiChannelLinear, ContextFreeEncoder
 import torch.nn.functional as F
 
+
 class IntegerSubsetNet(nn.Module):
     """
     Used when the input is to be interpreted as a set of digits represented in base 2
     and the output is a probability assigned to each element of the set
-    """    
+    """
+
     def __init__(self, logprobs=True, null_model=False):
         super().__init__()
 
@@ -24,9 +26,9 @@ class IntegerSubsetNet(nn.Module):
                                 nn.Linear(32, 32),
                                 nn.ReLU(),
                                 nn.Linear(32, 16),
-				nn.ReLU(),
-				nn.Linear(16, 16),
-				nn.ReLU())
+                                nn.ReLU(),
+                                nn.Linear(16, 16),
+                                nn.ReLU())
 
         self.cfe = ContextFreeEncoder(cfe, '1d')
         if not self.null_model:
