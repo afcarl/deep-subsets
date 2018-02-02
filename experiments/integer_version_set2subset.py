@@ -32,7 +32,7 @@ def main(args):
     # create some different datasets for training:
     dataloaders = [
         torch.utils.data.DataLoader(
-            IntegerSubsetsSupervised(20000, i, 10, target=args.task),
+            IntegerSubsetsSupervised(100000, i, 10, target=args.task),
             batch_size=128)
         for i in range(4,10)
         ]
@@ -46,9 +46,9 @@ def main(args):
     else:
         raise ValueError('Unknown architecture. Must be set or null!')
     
-    optimizer = torch.optim.Adam(net.parameters(), weight_decay=1e-5, lr=1e-3)
+    optimizer = torch.optim.Adam(net.parameters(), lr=1e-2)
     criterion = torch.nn.BCEWithLogitsLoss()
-    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=1e-5)
+    #lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=1e-5)
     if torch.cuda.is_available() and args.gpu != '':
         net.cuda()
         CUDA = True
@@ -56,7 +56,8 @@ def main(args):
 
     for n in range(args.epochs): # run for epochs
         # is this curriculum training?
-        dataset = random.sample(dataloaders[:math.ceil((n+1)/increase_every)], 1)[0]
+        dataset = random.sample(dataloaders, 1)[0]
+        #dataset = random.sample(dataloaders[:math.ceil((n+1)/increase_every)], 1)[0]
         for i, (x, y) in enumerate(dataset): # batches in each epoch
             # zero the gradients
             optimizer.zero_grad()
@@ -74,18 +75,18 @@ def main(args):
             # update parameters
             loss.backward()
             optimizer.step()
-        lr_scheduler.step()
+        #lr_scheduler.step()
 
         if n % 10 == 0:
             set_acc, elem_acc = set_accuracy(y.squeeze(), y_hat.squeeze())
-            print('epoch: {}, loss: {}, set acc: {}, elem_acc: {}'.format(n, loss.cpu().data[0], set_acc.data[0], elem_acc.data[0]))
+            print('epoch: {}, loss: {}, set acc: {}, elem_acc: {}, set_size {}'.format(n, loss.cpu().data[0], set_acc.data[0], elem_acc.data[0], dataset.dataset.set_size))
 
 
     #TODO: fix the train=True to train=False
     datasets = [
         (i, torch.utils.data.DataLoader(
-            IntegerSubsetsSupervised(64, i, 10, target=args.task),
-            batch_size=64))
+            IntegerSubsetsSupervised(256, i, 10, target='mean', seed=5),
+            batch_size=256))
         for i in range(4,100)
         ]
 
