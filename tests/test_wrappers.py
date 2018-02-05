@@ -1,11 +1,11 @@
 import torch
 from torch.autograd import Variable
 from src.datatools import RLWrapper
-from src.datatools import IntergersLargerThanAverage
+from src.datatools import IntegersLargerThanAverage
 import numpy as np
 def test_RLWrapper():
     set_sizes = [2, 3]
-    datasets = [IntergersLargerThanAverage(32, set_size, 10) for set_size in set_sizes]
+    datasets = [IntegersLargerThanAverage(32, set_size, 10) for set_size in set_sizes]
     environment = RLWrapper(datasets)
     data = environment.reset()
     assert isinstance(data, Variable)

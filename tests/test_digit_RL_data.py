@@ -1,11 +1,11 @@
 from src.datatools.numbers_data import NumbersDataset
-from src.datatools.digit_RL_data import IntergersLargerThanAverage, SubsetSum
+from src.datatools.digit_RL_data import IntegersLargerThanAverage, SubsetSum
 from torch.utils.data import DataLoader
 import torch
 import numpy as np
 
 def test_integers_larger_than_avg():
-    integers_data = IntergersLargerThanAverage(10, 5, max_integer=10)
+    integers_data = IntegersLargerThanAverage(10, 5, max_integer=10)
     dataset = DataLoader(integers_data, batch_size=2)
 
     for i, datapoint in enumerate(dataset):
@@ -17,7 +17,7 @@ def test_integers_larger_than_avg():
         assert np.allclose(to_be_checked.numpy(), int_representation)
 
 def test_integers_larger_than_avg_reward():
-    integers_data = IntergersLargerThanAverage(10, 5, max_integer=5)
+    integers_data = IntegersLargerThanAverage(10, 5, max_integer=5)
     data = integers_data.int_list_to_bit_array(np.array([[5, 2, 1, 5], [3, 4, 1, 1], [5, 2, 1, 5], [5, 2, 1, 5]]))
     selected = np.array([[1, 0, 0, 0], [1, 1, 0, 0], [1, 0, 0, 1], [1, 1, 1, 0]])
     rewards = integers_data.reward_function(data, selected)
@@ -25,7 +25,7 @@ def test_integers_larger_than_avg_reward():
     assert rewards.view(-1).tolist() == [1, 2, 2, -1]
 
 def test_integers_larger_than_avg_supervised_objective():
-    integers_data = IntergersLargerThanAverage(10, 5, max_integer=10)
+    integers_data = IntegersLargerThanAverage(10, 5, max_integer=10)
     bit_repr = integers_data.int_list_to_bit_array(np.array([[5, 2, 1, 5], [3, 4, 1, 1]]))
     objective = integers_data.supervised_objective(bit_repr)
     assert np.all(np.equal(objective, np.array([[1, 0, 0, 1], [1, 1, 0 ,0 ]])))

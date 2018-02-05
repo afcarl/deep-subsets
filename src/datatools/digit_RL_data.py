@@ -84,7 +84,7 @@ class SubsetSum(NumbersDataset):
         return torch.FloatTensor(rewards)
 
 
-class IntergersLargerThanAverage(NumbersDataset):
+class IntegersLargerThanAverage(NumbersDataset):
     def __getitem__(self, index):
         _, bit_data = self._get_data(index)
         # subset = raw_data.float().ge(raw_data.float().mean())
