@@ -139,8 +139,6 @@ class IntegersLargerThanAverage(NumbersDataset):
 
     def supervised_objective(self, data):
         data = self.bit_array_to_int_array(data)
-        print(data)
-        print(data.mean(1   ))
         return data >= data.mean(1).reshape(-1, 1)
 
 
