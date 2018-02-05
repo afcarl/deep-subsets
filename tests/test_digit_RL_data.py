@@ -17,7 +17,18 @@ def test_integers_larger_than_avg():
         assert np.allclose(to_be_checked.numpy(), int_representation)
 
 def test_integers_larger_than_avg_reward():
-    pass
+    integers_data = IntergersLargerThanAverage(10, 5, max_integer=5)
+    data = integers_data.int_list_to_bit_array(np.array([[5, 2, 1, 5], [3, 4, 1, 1], [5, 2, 1, 5], [5, 2, 1, 5]]))
+    selected = np.array([[1, 0, 0, 0], [1, 1, 0, 0], [1, 0, 0, 1], [1, 1, 1, 0]])
+    rewards = integers_data.reward_function(data, selected)
+    assert tuple(rewards.size()) == (4, 1)
+    assert rewards.view(-1).tolist() == [1, 2, 2, -1]
+
+def test_integers_larger_than_avg_supervised_objective():
+    integers_data = IntergersLargerThanAverage(10, 5, max_integer=10)
+    bit_repr = integers_data.int_list_to_bit_array(np.array([[5, 2, 1, 5], [3, 4, 1, 1]]))
+    objective = integers_data.supervised_objective(bit_repr)
+    assert np.all(np.equal(objective, np.array([[1, 0, 0, 1], [1, 1, 0 ,0 ]])))
 
 def test_subset_sum_reward():
     pass
@@ -35,3 +46,4 @@ def test_numbers_dataset_bit_conversion():
     numbers_dataset = NumbersDataset(10, 5, 5)
     bit_repr = numbers_dataset.int_list_to_bit_array([4, 3, 1])
     assert np.allclose(bit_repr.numpy(), np.array([[0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 1]]))
+

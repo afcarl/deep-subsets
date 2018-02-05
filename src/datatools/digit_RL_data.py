@@ -13,6 +13,7 @@ SubsetSum implements the subset sum task
 import torch
 import numpy as np
 import math
+from collections import Counter
 from .numbers_data import NumbersDataset
 
 class SubsetSum(NumbersDataset):
@@ -89,7 +90,7 @@ class IntergersLargerThanAverage(NumbersDataset):
         # subset = raw_data.float().ge(raw_data.float().mean())
         return bit_data
 
-    def reward_function(self, data, selected_elements=None, bit_representation=True):
+    def reward_function(self, data, selected_elements, bit_representation=True):
         """
         Calculates the reward for picking the data
         :param data: must be a torch tensor or numpy array
@@ -108,21 +109,38 @@ class IntergersLargerThanAverage(NumbersDataset):
                         it is assumed that data contains the subsets
                         already
         """
-        if selected_elements is not None:
-            sets = self.subset_elements(data,
-                                        selected_elements,
-                                        bit_representation=bit_representation)
-        else:
-            sets = data.tolist()
+
+        sets = self.subset_elements(data,
+                                    selected_elements,
+                                    bit_representation=bit_representation)
+        if bit_representation:
+            data = self.bit_array_to_int_array(data)
 
         rewards = []
-        for set_i in sets:
-            raise NotImplementedError('To be implemented')
-            pass
-        return torch.FloatTensor(rewards)
+        set_means = np.mean(data, 1)
+        # sets =
+        for set_mean, set_ in zip(set_means, sets):
+            # +1 for correctly identifying element above mean
+            # -1 for incorrect identification
+            rewards.append(float((2*(np.array(set_) >= set_mean)-1).sum()))
 
+        # print(sets >= set_means)
+        #
+        # for set_i, data_i in zip(sets, data):
+        #     # calculate what
+        #     set_mean = np.mean(data_i)
+        #     score = set_i >= data
+        #     # set_mean = np.mean(data_i)
+        #     # selected_i = np.array(data_i) >= set_mean
+        #     # true_elements = self.subset_elements(np.array([data_i]).reshape(1, -1, 1), np.array([selected_i]), bit_representation=False)[0]
+        #     # rewards.append(int(Counter(true_elements) == Counter(set_i)))
 
+        return torch.FloatTensor(rewards).view(-1, 1)
 
-
+    def supervised_objective(self, data):
+        data = self.bit_array_to_int_array(data)
+        print(data)
+        print(data.mean(1   ))
+        return data >= data.mean(1).reshape(-1, 1)
 
 

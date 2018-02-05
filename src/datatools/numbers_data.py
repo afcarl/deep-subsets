@@ -55,8 +55,14 @@ class NumbersDataset(Dataset):
         return self._get_data(index)[1]
 
     def int_list_to_bit_array(self, list_of_numbers):
-        list_of_numbers = np.array(list_of_numbers,
-                                   dtype=np.uint8).reshape(1, -1, 1)
+        if type(list_of_numbers) is list:
+            list_of_numbers = np.array(list_of_numbers,
+                                       dtype=np.uint8).reshape(1, -1, 1)
+        elif type(list_of_numbers) is np.ndarray:
+            batch_size, set_size = list_of_numbers.shape[0], list_of_numbers.shape[1]
+            list_of_numbers = list_of_numbers.astype(np.uint8).reshape(batch_size, set_size, 1)
+        else:
+            raise ValueError('Unrecognized type {} for list_of_numbers'.format(list_of_numbers))
         bit_data = np.unpackbits(list_of_numbers, 2)
         return torch.from_numpy(bit_data)
 
