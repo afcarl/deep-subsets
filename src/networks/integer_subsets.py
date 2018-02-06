@@ -15,29 +15,50 @@ class IntegerSubsetNet(nn.Module):
         self.null_model = null_model
 
         if self.null_model:
-            cfe = nn.Sequential(nn.Linear(8, 16),
+            # so many layers just to have the same number of parameters!
+            cfe = nn.Sequential(nn.Linear(8, 32),
                                 nn.ReLU(),
-                                nn.Linear(16, 16),
+                                nn.Linear(32, 64),
+                                nn.ReLU(),
+                                nn.Linear(64, 64),
+                                nn.ReLU(),
+                                nn.Linear(64, 32),
+                                nn.ReLU(),
+                                nn.Linear(32, 64),
+                                nn.ReLU(),
+                                nn.Linear(64,64),
+                                nn.ReLU(),
+                                nn.Linear(64,64),
+                                nn.ReLU(),
+                                nn.Linear(64,64),
+                                nn.ReLU(),
+                                nn.Linear(64,64),
+                                nn.ReLU(),
+                                nn.Linear(64,32),
+                                nn.ReLU(),
+                                nn.Linear(32, 16),
                                 nn.ReLU(),
                                 nn.Linear(16, 1))
         else:
             cfe = nn.Sequential(nn.Linear(8, 32),
                                 nn.ReLU(),
-                                nn.Linear(32, 32),
+                                nn.Linear(32, 64),
                                 nn.ReLU(),
-                                nn.Linear(32, 16),
-                                nn.ReLU(),
-                                nn.Linear(16, 16),
-                                nn.ReLU())
+                                nn.Linear(64, 64),
+				                nn.ReLU(),
+				                nn.Linear(64, 32),
+				                nn.ReLU())
 
         self.cfe = ContextFreeEncoder(cfe, '1d')
         if not self.null_model:
-            self.cbe = ContextBasedMultiChannelLinear(16, 16, nonlinearity=nn.ReLU)
-            self.cbe2 = ContextBasedMultiChannelLinear(16, 16, nonlinearity=nn.ReLU)
-            self.cbe3 = ContextBasedMultiChannelLinear(16, 16, nonlinearity=nn.ReLU)
-            self.cbe4 = ContextBasedMultiChannelLinear(16, 16, nonlinearity=nn.ReLU)
-            self.cbe5 = ContextBasedMultiChannelLinear(16, 16, nonlinearity=nn.ReLU)
-            self.cbe6 = ContextBasedMultiChannelLinear(16, 1)
+            self.cbe = ContextBasedMultiChannelLinear(32, 64, nonlinearity=nn.ReLU)
+            self.cbe2 = ContextBasedMultiChannelLinear(64, 64, nonlinearity=nn.ReLU)
+            self.cbe3 = ContextBasedMultiChannelLinear(64, 64, nonlinearity=nn.ReLU)
+            self.cbe4 = ContextBasedMultiChannelLinear(64, 64, nonlinearity=nn.ReLU)
+            self.cbe5 = ContextBasedMultiChannelLinear(64, 64, nonlinearity=nn.ReLU)
+            self.cbe6 = ContextBasedMultiChannelLinear(64, 32, nonlinearity=nn.ReLU)
+            self.cbe7 = ContextBasedMultiChannelLinear(32, 16, nonlinearity=nn.ReLU)
+            self.cbe8 = ContextBasedMultiChannelLinear(16, 1)
 
         self.logprobs = logprobs
 
@@ -50,6 +71,8 @@ class IntegerSubsetNet(nn.Module):
             x = self.cbe4(x)
             x = self.cbe5(x)
             x = self.cbe6(x)
+            x = self.cbe7(x)
+            x = self.cbe8(x)
         if not self.logprobs:
             x = F.sigmoid(x)
         return x

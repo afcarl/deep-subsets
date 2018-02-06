@@ -55,21 +55,36 @@ class NumbersDataset(Dataset):
         return self._get_data(index)[1]
 
     def int_list_to_bit_array(self, list_of_numbers):
-        list_of_numbers = np.array(list_of_numbers,
-                                   dtype=np.uint8).reshape(1, -1, 1)
+        if type(list_of_numbers) is list:
+            list_of_numbers = np.array(list_of_numbers,
+                                       dtype=np.uint8).reshape(1, -1, 1)
+        elif type(list_of_numbers) is np.ndarray:
+            batch_size, set_size = list_of_numbers.shape[0], list_of_numbers.shape[1]
+            list_of_numbers = list_of_numbers.astype(np.uint8).reshape(batch_size, set_size, 1)
+        else:
+            raise ValueError('Unrecognized type {} for list_of_numbers'.format(list_of_numbers))
         bit_data = np.unpackbits(list_of_numbers, 2)
         return torch.from_numpy(bit_data)
 
     def bit_array_to_int_array(self, bit_repr):
         if type(bit_repr) != np.ndarray:
             bit_repr = bit_repr.numpy()
-        
+
         batch_size, set_size, _ = bit_repr.shape
         return np.packbits(bit_repr, 2).reshape(batch_size, set_size)
 
     def subset_elements(self, data, selection_idx, bit_representation=True):
+        """
+        Subsets elements from data according to selection_idx
+        :param data: a batch of sets to subset from (batch_size, set_size, ?)
+        :param selection_idx: the indices of each element in each set to subset (batch_size, set_size)
+        :param bit_representation: flag to denote if data is in bit form
+        :return: a list of size batch_size containing elements from each set subsetted.
+        """
         if type(selection_idx) != np.ndarray:
             selected_elements = selection_idx.numpy()
+        else:
+            selected_elements = selection_idx
         
         batch_size, set_size, _ = data.shape
 
@@ -90,10 +105,11 @@ class NumbersDataset(Dataset):
         #    all sets will have 0 as an element
         # 2: convert the numpy array to a list of lists
 
-        selected_elements = selected_elements.reshape(batch_size, set_size)
+        selected_elements = selected_elements.reshape(batch_size, set_size).astype(float)
+        selected_elements[selected_elements == 0] = -np.inf
         sets = (numbers * selected_elements).tolist()
 
-        # 3: filter out all the zero elements in each set
-        filtered_sets = list(map(lambda set_: list(filter(lambda element: element>0, set_)), sets))
+        # 3: filter out all the masked elements in each set
+        filtered_sets = list(map(lambda set_: list(filter(lambda element: element > -np.inf, set_)), sets))
 
         return filtered_sets
