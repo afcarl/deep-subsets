@@ -56,8 +56,10 @@ def main(args):
 
     for n in range(args.epochs): # run for epochs
         # is this curriculum training?
-        dataset = random.sample(dataloaders, 1)[0]
-        #dataset = random.sample(dataloaders[:math.ceil((n+1)/increase_every)], 1)[0]
+
+        batch_loss = 0
+        dataset = random.sample(dataloaders[:math.ceil((n+1)/increase_every)], 1)[0]
+
         for i, (x, y) in enumerate(dataset): # batches in each epoch
             # zero the gradients
             optimizer.zero_grad()
@@ -75,11 +77,12 @@ def main(args):
             # update parameters
             loss.backward()
             optimizer.step()
-        #lr_scheduler.step()
+            batch_loss += loss.cpu().data[0]
+        lr_scheduler.step()
 
         if n % 10 == 0:
             set_acc, elem_acc = set_accuracy(y.squeeze(), y_hat.squeeze())
-            print('epoch: {}, loss: {}, set acc: {}, elem_acc: {}, set_size {}'.format(n, loss.cpu().data[0], set_acc.data[0], elem_acc.data[0], dataset.dataset.set_size))
+            print('epoch: {}, loss: {}, set acc: {}, elem_acc: {}'.format(n, batch_loss/(i+1), set_acc.data[0], elem_acc.data[0]))
 
 
     #TODO: fix the train=True to train=False

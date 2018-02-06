@@ -38,3 +38,8 @@ class IntegerSubsetsSupervised(NumbersDataset):
             raise ValueError('Unknown Target {}'.format(self.target))
 
         return base_2, y_target
+
+
+class IntegerSubsetSumSupervised(NumbersDataset):
+    def __init__(self):
+        pass
