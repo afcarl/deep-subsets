@@ -31,8 +31,8 @@ from torch.nn.utils import clip_grad_norm
 
 increase_every = 1
 tau = 0.5 # activation probability
-lambda1 = 1
-lambda2 = 1
+#lambda1 = 1
+#lambda2 = 1
 
 def main(args):
     CUDA = False
@@ -48,7 +48,7 @@ def main(args):
     else:
         raise ValueError('Unknown architecture. Must be set or null!')
 
-    optimizer = torch.optim.RMSprop(policy.parameters(), lr=1e-4, eps=1e-2)
+    optimizer = torch.optim.Adam(policy.parameters(), lr=1e-4, eps=1e-1)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.9) 
     if torch.cuda.is_available() and args.gpu != '':
         policy.cuda()
@@ -101,7 +101,7 @@ def main(args):
         (i, torch.utils.data.DataLoader(
             IntegerSubsetsSupervised(256, i, 10, target='mean', seed=5),
             batch_size=256))
-        for i in range(4, 5)
+        for i in range(4, 10)
     ]
 
     set_sizes = []

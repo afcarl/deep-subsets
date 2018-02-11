@@ -115,14 +115,15 @@ class IntegersLargerThanAverage(NumbersDataset):
                                     bit_representation=bit_representation)
         if bit_representation:
             data = self.bit_array_to_int_array(data)
-
+        #set_size = data.shape[1]
+        set_size = 1 # comment out for now since it doesnt seem to work
         rewards = []
         set_means = np.mean(data, 1)
         # sets =
         for set_mean, set_ in zip(set_means, sets):
             # +1 for correctly identifying element above mean
             # -1 for incorrect identification
-            rewards.append(float((2*(np.array(set_) >= set_mean)-1).sum()))
+            rewards.append(float((2*(np.array(set_) >= set_mean)-1).sum())/set_size)
             # -1 for everything that is wrong
             #rewards.append(float(((np.array(set_) >= set_mean)-1).sum()))
         # print(sets >= set_means)
