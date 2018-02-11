@@ -60,8 +60,11 @@ def main(args):
         log_prob_actions = log_prob_actions.sum(1)
         baseline = critic(data).view(-1, 1)
 
+        if n % 100 == 0:
+            y_target = torch.FloatTensor(environment.current_dataset.supervised_objective(data.data.int()))
 
         data, reward, _, info = environment.step(actions)
+
         advantage = reward - baseline
 
         critic.update_baseline(reward, advantage, baseline)
@@ -75,8 +78,7 @@ def main(args):
         optimizer.step()
         scheduler.step()
         if n % 100 == 0:
-            y_target = torch.FloatTensor(environment.current_dataset.supervised_objective(data.data.int()))
-            set_acc, elem_acc = set_accuracy(y_target, actions.data.squeeze())
+            set_acc, elem_acc = set_accuracy(y_target, actions.data)
             print('{}: loss {:3g}, episode_reward {:3g}, set acc: {},'
                   ' elem_acc: {}, set_size {}, entropy {}'.format(n, loss.cpu().data[0], reward.mean(),
                                                       set_acc, elem_acc, environment.current_dataset.set_size,
