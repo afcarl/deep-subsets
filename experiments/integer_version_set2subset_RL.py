@@ -28,6 +28,7 @@ from pg_methods.utils.baselines import MovingAverageBaseline
 from pg_methods.utils.policies import BernoulliPolicy
 from pg_methods.utils import gradients
 from torch.nn.utils import clip_grad_norm
+from collections import Counter
 
 
 def main(args):
@@ -86,6 +87,7 @@ def main(args):
                   ' elem_acc: {}, set_size {}, entropy {}'.format(n, loss.cpu().data[0], reward.mean(),
                                                       set_acc, elem_acc, environment.current_dataset.set_size,
                                                     (-log_prob_actions * log_prob_actions.exp()).sum().data[0]))
+            print('reward distribution: {}'.format(Counter(reward.numpy().ravel().tolist())))
 
 
     # now put this into "supervised" mode
