@@ -122,9 +122,9 @@ class IntegersLargerThanAverage(NumbersDataset):
         for set_mean, set_ in zip(set_means, sets):
             # +1 for correctly identifying element above mean
             # -1 for incorrect identification
-            #rewards.append(float((2*(np.array(set_) >= set_mean)-1).sum()))
+            rewards.append(float((2*(np.array(set_) >= set_mean)-1).sum()))
             # -1 for everything that is wrong
-            rewards.append(float(((np.array(set_) >= set_mean)-1).sum()))
+            #rewards.append(float(((np.array(set_) >= set_mean)-1).sum()))
         # print(sets >= set_means)
         #
         # for set_i, data_i in zip(sets, data):
@@ -140,6 +140,6 @@ class IntegersLargerThanAverage(NumbersDataset):
 
     def supervised_objective(self, data):
         data = self.bit_array_to_int_array(data)
-        return data >= data.mean(1).reshape(-1, 1)
+        return (data >= data.mean(1).reshape(-1, 1)).astype(int)
 
 
