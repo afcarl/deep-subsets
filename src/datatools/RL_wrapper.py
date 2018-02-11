@@ -50,7 +50,7 @@ class RLWrapper(Wrapper):
         if isinstance(action, Variable):
             action = action.data
         action = action.cpu().int()
-        rewards = self.current_dataset.reward_function(self.most_recent_batch.int(), action)/self.most_recent_batch.size()[1]
+        rewards = self.current_dataset.reward_function(self.most_recent_batch.int(), action)
         next_batch = self.get_data()
         if type(next_batch) is bool and next_batch == False:
             next_batch = self.reset() #TODO should the user reset manually or should it be handled internally?

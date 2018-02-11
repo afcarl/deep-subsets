@@ -18,6 +18,7 @@ from torch.autograd import Variable
 import torch
 import random
 import math
+import torch.nn.functional as F
 import numpy as np
 from src.networks.integer_subsets import IntegerSubsetNet
 from src.datatools import IntegersLargerThanAverage, RLWrapper
@@ -29,15 +30,17 @@ from pg_methods.utils import gradients
 from torch.nn.utils import clip_grad_norm
 
 increase_every = 1
-
+tau = 0.5 # activation probability
+lambda1 = 1
+lambda2 = 1
 
 def main(args):
     CUDA = False
     folder_name = 'RL_'+args.name + '_' + args.task + '_' + args.architecture
     folder_path = os.path.join('./', folder_name)
     create_folder(folder_name)
-    datasets = [IntegersLargerThanAverage(10000, i, 10) for i in range(4, 10)]
-    critic = MovingAverageBaseline(0.99)
+    datasets = [IntegersLargerThanAverage(10000, i, 10) for i in range(4, 5)]
+    critic = MovingAverageBaseline(0.9)
     if args.architecture == 'set':
         policy = BernoulliPolicy(IntegerSubsetNet())
     elif args.architecture == 'null':
@@ -45,7 +48,8 @@ def main(args):
     else:
         raise ValueError('Unknown architecture. Must be set or null!')
 
-    optimizer = torch.optim.RMSprop(policy.parameters(), lr=1e-3, eps=1e-2)
+    optimizer = torch.optim.RMSprop(policy.parameters(), lr=1e-4, eps=1e-2)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.9) 
     if torch.cuda.is_available() and args.gpu != '':
         policy.cuda()
         CUDA = True
@@ -56,7 +60,7 @@ def main(args):
     for n in range(args.n_episodes):  # run for epochs
 
         actions, log_prob_actions = policy(data)
-
+        #policy_p = F.sigmoid(policy.fn_approximator(data))
         log_prob_actions = log_prob_actions.sum(1)
         baseline = critic(data).view(-1, 1)
 
@@ -69,22 +73,30 @@ def main(args):
         advantage = reward - baseline
         # print(advantage.size())
         # print(reward.size())
-
+        critic.update_baseline(reward, advantage, baseline)
         loss = gradients.calculate_policy_gradient_terms(log_prob_actions, advantage)
         loss = loss.mean() # mean is fine since there is only really "one action"?
         # print(loss)
+#        term1 = (policy_p.mean(0) - tau).sum() # regularization to activate each unit with probability tau
+ #       term2 = (policy_p.mean(1) - tau).mean() # regularization to be a bit sparse
+ #       term3 = ((policy_p - policy_p.mean(0))**2).sum()
 
+ #       regularized_loss = loss + lambda1*(term1 + term2) * lambda2*term3
         optimizer.zero_grad()
+#        regularized_loss.backward()
         loss.backward()
-        clip_grad_norm(policy.fn_approximator.parameters(), 20)
+        clip_grad_norm(policy.fn_approximator.parameters(), 40)
         optimizer.step()
-
+        scheduler.step()
         if n % 100 == 0:
+            # print("")
             print('{}: loss {:3g}, episode_reward {:3g}'.format(n, loss.cpu().data[0], reward.mean()))
             y_target = torch.FloatTensor(environment.current_dataset.supervised_objective(data.data.int()))
             set_acc, elem_acc = set_accuracy(y_target, policy(data)[0].data.squeeze())
             print('  : set acc: {}, elem_acc: {}, set_size {}'.format(set_acc, elem_acc, environment.current_dataset.set_size))
-
+            # print('  : loss: {} term1: {} term2: {} term3: {}'.format(loss.data[0], term1.data[0], term2.data[0], term3.data[0]))
+            # print('  : variance in loss estimate: {}'.format(torch.var(loss.data))
+            # print('  : variancea fter regularization {}'.format(torch.var(regularized_loss.data)))
     # datasets = [
     #     (i, torch.utils.data.DataLoader(
     #         IntegerSubsetsSupervised(256, i, 10, target='mean', seed=5),
