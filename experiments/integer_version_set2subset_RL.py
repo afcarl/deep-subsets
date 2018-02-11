@@ -49,7 +49,7 @@ def main(args):
         raise ValueError('Unknown architecture. Must be set or null!')
 
     optimizer = torch.optim.Adam(policy.parameters(), lr=1e-4, eps=1e-1)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.9) 
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.99)
     if torch.cuda.is_available() and args.gpu != '':
         policy.cuda()
         CUDA = True
@@ -64,6 +64,7 @@ def main(args):
         log_prob_actions = log_prob_actions.sum(1)
         baseline = critic(data).view(-1, 1)
 
+
         # print(baseline.size())
         # print(actions.size())
         # print(log_prob_actions.size())
@@ -76,24 +77,20 @@ def main(args):
         critic.update_baseline(reward, advantage, baseline)
         loss = gradients.calculate_policy_gradient_terms(log_prob_actions, advantage)
         loss = loss.mean() # mean is fine since there is only really "one action"?
-        # print(loss)
-#        term1 = (policy_p.mean(0) - tau).sum() # regularization to activate each unit with probability tau
- #       term2 = (policy_p.mean(1) - tau).mean() # regularization to be a bit sparse
- #       term3 = ((policy_p - policy_p.mean(0))**2).sum()
 
- #       regularized_loss = loss + lambda1*(term1 + term2) * lambda2*term3
         optimizer.zero_grad()
-#        regularized_loss.backward()
+
         loss.backward()
         clip_grad_norm(policy.fn_approximator.parameters(), 40)
         optimizer.step()
         scheduler.step()
         if n % 100 == 0:
-            # print("")
-            print('{}: loss {:3g}, episode_reward {:3g}'.format(n, loss.cpu().data[0], reward.mean()))
             y_target = torch.FloatTensor(environment.current_dataset.supervised_objective(data.data.int()))
             set_acc, elem_acc = set_accuracy(y_target, policy(data)[0].data.squeeze())
-            print('  : set acc: {}, elem_acc: {}, set_size {}'.format(set_acc, elem_acc, environment.current_dataset.set_size))
+            print('{}: loss {:3g}, episode_reward {:3g}, set acc: {},'
+                  ' elem_acc: {}, set_size {}, entropy {}'.format(n, loss.cpu().data[0], reward.mean(),
+                                                      set_acc, elem_acc, environment.current_dataset.set_size,
+                                                    (log_prob_actions * log_prob_actions.exp()).mean().data[0]))
 
 
     # now put this into "supervised" mode
