@@ -29,10 +29,6 @@ from pg_methods.utils.policies import BernoulliPolicy
 from pg_methods.utils import gradients
 from torch.nn.utils import clip_grad_norm
 
-increase_every = 1
-tau = 0.5 # activation probability
-#lambda1 = 1
-#lambda2 = 1
 
 def main(args):
     CUDA = False
@@ -48,7 +44,7 @@ def main(args):
     else:
         raise ValueError('Unknown architecture. Must be set or null!')
 
-    optimizer = torch.optim.Adam(policy.parameters(), lr=1e-4, eps=1e-1)
+    optimizer = torch.optim.Adam(policy.parameters(), lr=1e-3, eps=1e-2)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 5000, gamma=0.99)
     if torch.cuda.is_available() and args.gpu != '':
         policy.cuda()
@@ -65,15 +61,9 @@ def main(args):
         baseline = critic(data).view(-1, 1)
 
 
-        # print(baseline.size())
-        # print(actions.size())
-        # print(log_prob_actions.size())
-        # print(.size())
-
         data, reward, _, info = environment.step(actions)
         advantage = reward - baseline
-        # print(advantage.size())
-        # print(reward.size())
+
         critic.update_baseline(reward, advantage, baseline)
         loss = gradients.calculate_policy_gradient_terms(log_prob_actions, advantage)
         loss = loss.mean() # mean is fine since there is only really "one action"?
@@ -86,11 +76,11 @@ def main(args):
         scheduler.step()
         if n % 100 == 0:
             y_target = torch.FloatTensor(environment.current_dataset.supervised_objective(data.data.int()))
-            set_acc, elem_acc = set_accuracy(y_target, policy(data)[0].data.squeeze())
+            set_acc, elem_acc = set_accuracy(y_target, actions.data.squeeze())
             print('{}: loss {:3g}, episode_reward {:3g}, set acc: {},'
                   ' elem_acc: {}, set_size {}, entropy {}'.format(n, loss.cpu().data[0], reward.mean(),
                                                       set_acc, elem_acc, environment.current_dataset.set_size,
-                                                    (log_prob_actions * log_prob_actions.exp()).mean().data[0]))
+                                                    (-log_prob_actions * log_prob_actions.exp()).sum().data[0]))
 
 
     # now put this into "supervised" mode
