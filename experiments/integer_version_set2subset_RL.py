@@ -53,6 +53,8 @@ def main(args):
 
     environment = RLWrapper(datasets, 64, use_cuda=CUDA)
     data = environment.reset()
+    rewards_list = []
+
     for n in range(args.n_episodes):  # run for epochs
 
         actions, log_prob_actions = policy(data)
@@ -77,6 +79,7 @@ def main(args):
         clip_grad_norm(policy.fn_approximator.parameters(), 40)
         optimizer.step()
         scheduler.step()
+        rewards_list.append(reward.mean())
         if n % 100 == 0:
             set_acc, elem_acc = set_accuracy(y_target, actions.data)
             print('{}: loss {:3g}, episode_reward {:3g}, set acc: {},'
@@ -126,6 +129,7 @@ def main(args):
     print(torch.FloatTensor(set_accs).mean())
     policy.cpu()
     torch.save({'set_sizes': set_sizes,
+                'rewards_list':rewards_list,
                 'mse': mse,
                 'set_acc': set_accs,
                 'elem_accs': elem_accs,
