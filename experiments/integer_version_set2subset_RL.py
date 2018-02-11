@@ -21,7 +21,7 @@ import math
 import torch.nn.functional as F
 import numpy as np
 from src.networks.integer_subsets import IntegerSubsetNet
-from src.datatools import IntegersLargerThanAverage, RLWrapper
+from src.datatools import IntegersLargerThanAverage, RLWrapper, IntegerSubsetsSupervised
 from src.util_io import create_folder
 from src.metrics import set_accuracy
 from pg_methods.utils.baselines import MovingAverageBaseline
@@ -94,53 +94,54 @@ def main(args):
             y_target = torch.FloatTensor(environment.current_dataset.supervised_objective(data.data.int()))
             set_acc, elem_acc = set_accuracy(y_target, policy(data)[0].data.squeeze())
             print('  : set acc: {}, elem_acc: {}, set_size {}'.format(set_acc, elem_acc, environment.current_dataset.set_size))
-            # print('  : loss: {} term1: {} term2: {} term3: {}'.format(loss.data[0], term1.data[0], term2.data[0], term3.data[0]))
-            # print('  : variance in loss estimate: {}'.format(torch.var(loss.data))
-            # print('  : variancea fter regularization {}'.format(torch.var(regularized_loss.data)))
-    # datasets = [
-    #     (i, torch.utils.data.DataLoader(
-    #         IntegerSubsetsSupervised(256, i, 10, target='mean', seed=5),
-    #         batch_size=256))
-    #     for i in range(4, 100)
-    # ]
-    #
-    # set_sizes = []
-    # mse = []
-    # set_accs = []
-    # elem_accs = []
-    # torch.save(net, os.path.join(folder_path, 'model-gpu.pyt'))
-    #
-    # for set_size, dataset in datasets:
-    #     for i, (x, y) in enumerate(dataset):
-    #         # prepare the data
-    #         if CUDA:
-    #             x = x.cuda()
-    #             y = y.cuda()
-    #         x, y = Variable(x, volatile=True), Variable(y, volatile=True).float()
-    #
-    #         # run it through the network
-    #         y_hat = net(x)
-    #         # calculate the loss
-    #         loss = criterion(y_hat, y)
-    #         if CUDA:
-    #             loss = loss.cpu()
-    #         set_sizes.append(set_size)
-    #         mse.append(loss.data[0])
-    #         set_acc, elem_acc = set_accuracy(y.squeeze(), y_hat.squeeze())
-    #         set_accs.append(set_acc.data[0])
-    #         elem_accs.append(elem_acc.data[0])
-    #
-    # print(set_sizes)
-    # print(mse)
-    # print(set_accs)
-    # print(torch.FloatTensor(set_accs).mean())
-    # net.cpu()
-    # torch.save({'set_sizes': set_sizes,
-    #             'mse': mse,
-    #             'set_acc': set_accs,
-    #             'elem_accs': elem_accs,
-    #             'mean_acc': torch.FloatTensor(set_accs).mean()}, os.path.join(folder_path, 'results.json'))
-    # torch.save(net, os.path.join(folder_path, 'model.pyt'))
+
+
+    # now put this into "supervised" mode
+    datasets = [
+        (i, torch.utils.data.DataLoader(
+            IntegerSubsetsSupervised(256, i, 10, target='mean', seed=5),
+            batch_size=256))
+        for i in range(4, 5)
+    ]
+
+    set_sizes = []
+    mse = []
+    set_accs = []
+    elem_accs = []
+    torch.save(policy, os.path.join(folder_path, 'model-gpu.pyt'))
+    criterion = torch.nn.BCELoss()
+    for set_size, dataset in datasets:
+        for i, (x, y) in enumerate(dataset):
+            # prepare the data
+            if CUDA:
+                x = x.cuda()
+                y = y.cuda()
+            x, y = Variable(x, volatile=True), Variable(y, volatile=True).float()
+
+            # run it through the network
+            y_hat, _ = policy(x)
+            y_hat = y_hat.view_as(y)
+            # calculate the loss
+            loss = criterion(y_hat, y)
+            if CUDA:
+                loss = loss.cpu()
+            set_sizes.append(set_size)
+            mse.append(loss.data[0])
+            set_acc, elem_acc = set_accuracy(y.squeeze(), y_hat.squeeze())
+            set_accs.append(set_acc.data[0])
+            elem_accs.append(elem_acc.data[0])
+
+    print(set_sizes)
+    print(mse)
+    print(set_accs)
+    print(torch.FloatTensor(set_accs).mean())
+    policy.cpu()
+    torch.save({'set_sizes': set_sizes,
+                'mse': mse,
+                'set_acc': set_accs,
+                'elem_accs': elem_accs,
+                'mean_acc': torch.FloatTensor(set_accs).mean()}, os.path.join(folder_path, 'results.json'))
+    torch.save(policy, os.path.join(folder_path, 'model.pyt'))
 
 
 if __name__ == '__main__':
