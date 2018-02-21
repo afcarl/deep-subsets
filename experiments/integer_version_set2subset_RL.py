@@ -70,7 +70,7 @@ def main(args):
 
         advantage = reward - baseline
 
-        critic.update_baseline(reward, advantage, baseline)
+        critic.update_baseline(None, reward)
         loss = gradients.calculate_policy_gradient_terms(log_prob_actions, advantage)
         loss = loss.mean() # mean is fine since there is only really "one action"?
 
