@@ -1,7 +1,7 @@
 # Deep Subsets
 Learning deep functions on sets for set2subset transformations.
 
-*note*: currently this project is on "hold" since I couldn't make it work that well. I will probably revisit this sometime in the future. However, most of the components to implement deep sets-style networks is available.
+*note*: currently this project is on "hold" since I couldn't make it work that well. I will probably revisit this sometime in the future. However, most of the components to implement deep sets-style networks is available. Some of the RL code will not work since it requires a library that will soon be opensourced. If you want early access please feel free to contact me!
 
 Most of the goodstuff is in `./src/`:
 
